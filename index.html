@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Momentum Ecosystem Quiz</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+  }
+  #quiz-container {
+    background: white;
+    padding: 25px 30px;
+    border-radius: 10px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+    width: 350px;
+    text-align: center;
+  }
+  h2 { margin-bottom: 20px; }
+  .option-btn {
+    display: block;
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .option-btn:hover { background: #0056b3; }
+  .correct { background: #28a745 !important; }
+  .wrong { background: #dc3545 !important; }
+  #feedback { margin-top: 15px; font-weight: bold; min-height: 24px; }
+  #progress { margin-top: 20px; color: #555; }
+  #next-btn {
+    margin-top: 15px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    background: #17a2b8;
+    color: white;
+    cursor: pointer;
+    display: none;
+  }
+  #next-btn:hover { background: #138496; }
+</style>
+</head>
+<body>
+
+<div id="quiz-container">
+  <h2>Momentum Ecosystem Quiz</h2>
+  <div id="question-container">
+    <p id="question"></p>
+    <div id="options"></div>
+  </div>
+  <div id="feedback"></div>
+  <div id="progress"></div>
+  <button id="next-btn" onclick="nextQuestion()">Next</button>
+</div>
+
+<script>
+// 20 Questions Array
+const quizData = [
+  { question: "What is Momentum DEX?", options: ["A centralized exchange", "The core exchange of the Move ecosystem", "A stablecoin", "A vault for yield"], answer: "The core exchange of the Move ecosystem" },
+  { question: "What feature makes Momentum DEX approachable for beginners?", options: ["Deep liquidity", "Simple swap flows", "High fees", "Limited tokens"], answer: "Simple swap flows" },
+  { question: "What does Momentum Vaults provide?", options: ["Automated yield", "Liquid staking", "Token generation", "Multi-sig wallets"], answer: "Automated yield" },
+  { question: "What is the purpose of Momentum X?", options: ["Trading NFTs only", "Unifies trading and compliance for tokenized assets", "Minting stablecoins", "Providing bridges only"], answer: "Unifies trading and compliance for tokenized assets" },
+  { question: "Which feature does Momentum X use for compliance?", options: ["Zero-knowledge identity", "High gas fees", "Manual verification", "Centralized KYC"], answer: "Zero-knowledge identity" },
+  { question: "What is the Token Generation Lab for?", options: ["Liquid staking", "Launching Sui bluechip tokens", "Vault management", "Stablecoin minting"], answer: "Launching Sui bluechip tokens" },
+  { question: "What is MSafe?", options: ["A yield vault", "A multi-sig solution for MOVE chains", "A bridge for BTC", "A stablecoin"], answer: "A multi-sig solution for MOVE chains" },
+  { question: "Which stablecoin allows billions of transfers securely?", options: ["FDUSD", "USDY", "AUSD", "BUCK"], answer: "AUSD" },
+  { question: "Which stablecoin is pegged via collateral assets?", options: ["FDUSD", "USDY", "AUSD", "BUCK"], answer: "BUCK" },
+  { question: "Which product provides capital-efficient liquid staking?", options: ["Vaults", "Momentum X", "Liquid Staking", "DEX"], answer: "Liquid Staking" },
+  { question: "Which product combines cross-chain interoperability?", options: ["Momentum X", "Vaults", "Token Generation Lab", "MSafe"], answer: "Momentum X" },
+  { question: "How many users are in the Momentum ecosystem according to the stats?", options: ["1M", "1.7M", "2M", "500K"], answer: "1.7M" },
+  { question: "Which product is focused on early access to token launches?", options: ["MSafe", "DEX", "Token Generation Lab", "Vaults"], answer: "Token Generation Lab" },
+  { question: "Which product is described as 'automated yield, made simple'?", options: ["Vaults", "Liquid Staking", "DEX", "Momentum X"], answer: "Vaults" },
+  { question: "Which ecosystem partner is a permissionless yieldcoin?", options: ["FDUSD", "USDY", "AUSD", "BUCK"], answer: "USDY" },
+  { question: "What is the main benefit of Momentum DEX?", options: ["High fees for institutions", "Seamless and powerful trading", "Only token minting", "Only BTC trading"], answer: "Seamless and powerful trading" },
+  { question: "Which product focuses on institutional-grade compliance?", options: ["Momentum X", "Vaults", "MSafe", "Token Generation Lab"], answer: "Momentum X" },
+  { question: "Which stablecoin empowers financial fluidity?", options: ["USDY", "FDUSD", "AUSD", "BUCK"], answer: "FDUSD" },
+  { question: "What is the total trading volume mentioned?", options: ["$22B+", "$23.1B+", "$24B+", "$20B+"], answer: "$23.1B+" },
+  { question: "Which product is described as the core exchange of the MOVE ecosystem?", options: ["Vaults", "Momentum DEX", "Momentum X", "Token Generation Lab"], answer: "Momentum DEX" }
+];
+
+let currentQuestion = 0;
+
+// Load Question Function
+function loadQuestion() {
+  const q = quizData[currentQuestion];
+  document.getElementById('question').textContent = q.question;
+  const optionsDiv = document.getElementById('options');
+  optionsDiv.innerHTML = '';
+  q.options.forEach(option => {
+    const btn = document.createElement('button');
+    btn.textContent = option;
+    btn.className = 'option-btn';
+    btn.onclick = () => checkAnswer(btn, option);
+    optionsDiv.appendChild(btn);
+  });
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').style.display = 'none';
+  document.getElementById('progress').textContent = `Question ${currentQuestion + 1} of ${quizData.length}`;
+}
+
+// Check Answer Function
+function checkAnswer(button, selected) {
+  const correct = quizData[currentQuestion].answer;
+  const feedback = document.getElementById('feedback');
+  if (selected === correct) {
+    button.classList.add('correct');
+    feedback.textContent = '✅ Correct!';
+    feedback.style.color = 'green';
+  } else {
+    button.classList.add('wrong');
+    feedback.textContent = `❌ Wrong! Correct: ${correct}`;
+    feedback.style.color = 'red';
+  }
+  Array.from(document.getElementsByClassName('option-btn')).forEach(btn => btn.disabled = true);
+  document.getElementById('next-btn').style.display = 'inline-block';
+}
+
+// Next Question Function
+function nextQuestion() {
+  currentQuestion++;
+  if(currentQuestion < quizData.length) {
+    loadQuestion();
+  } else {
+    document.getElementById('quiz-container').innerHTML = `<h2>🎉 Quiz Completed!</h2><p>You answered ${quizData.length} questions.</p>`;
+  }
+}
+
+// Initialize
+loadQuestion();
+</script>
+
+</body>
+</html>
